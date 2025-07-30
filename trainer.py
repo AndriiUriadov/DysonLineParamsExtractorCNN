@@ -69,7 +69,7 @@ class DysonianLineTrainer:
         Args:
             X_train, X_val, X_test: вхідні дані
             y_train, y_val, y_test: вихідні дані
-            batch_size: розмір батчу (зменшено до 16 для економії пам'яті)
+            batch_size: розмір батчу (встановлено 16 для оптимальної швидкості)
         
         Returns:
             tuple: (train_loader, val_loader, test_loader)
@@ -99,7 +99,7 @@ class DysonianLineTrainer:
         print(f"   Train batches: {len(train_loader)}")
         print(f"   Val batches: {len(val_loader)}")
         print(f"   Test batches: {len(test_loader)}")
-        print(f"   Batch size: {batch_size} (оптимізовано для пам'яті)")
+        print(f"   Batch size: {batch_size} (оптимізовано для швидкості)")
         
         return train_loader, val_loader, test_loader
     
