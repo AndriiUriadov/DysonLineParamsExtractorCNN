@@ -1,7 +1,0 @@
-tunnel: 66aaa8ad-3c2c-4d61-8a92-751613b5340b
-credentials-file: ./tunnel-credentials.json
-
-ingress:
-  - hostname: dysonlinecnn.your-domain.com
-    service: http://localhost:8080
-  - service: http_status:404
