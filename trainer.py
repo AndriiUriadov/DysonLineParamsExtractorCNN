@@ -139,6 +139,10 @@ class DysonianLineTrainer:
             all_predictions.append(output.detach().cpu().numpy())
             all_targets.append(target.detach().cpu().numpy())
             
+            # Показуємо прогрес кожні 100 batch'ів
+            if batch_idx % 100 == 0 and batch_idx > 0:
+                print(f"     📦 Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.6f}")
+            
             # Очищаємо кеш GPU
             if batch_idx % 10 == 0:
                 torch.cuda.empty_cache()
@@ -274,10 +278,12 @@ class DysonianLineTrainer:
             
             # Виводимо прогрес
             epoch_time = time.time() - epoch_start
-            print(f"Epoch {epoch+1}/{num_epochs} ({epoch_time:.1f}s):")
-            print(f"  Train Loss: {train_loss:.6f}, Val Loss: {val_loss:.6f}")
-            print(f"  Train R²: {train_metrics['R2']:.4f}, Val R²: {val_metrics['R2']:.4f}")
-            print(f"  LR: {self.optimizer.param_groups[0]['lr']:.6f}")
+            print(f"🔄 Epoch {epoch+1}/{num_epochs} ({epoch_time:.1f}s):")
+            print(f"   📉 Train Loss: {train_loss:.6f}, Val Loss: {val_loss:.6f}")
+            print(f"   📊 Train R²: {train_metrics['R2']:.4f}, Val R²: {val_metrics['R2']:.4f}")
+            print(f"   📈 LR: {self.optimizer.param_groups[0]['lr']:.6f}")
+            print(f"   ⏱️  Загальний час: {(time.time() - start_time)/60:.1f} хв")
+            print("-" * 50)
             
             # Early stopping
             if patience_counter >= early_stopping_patience:
