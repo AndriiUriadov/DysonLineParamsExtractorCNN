@@ -62,44 +62,44 @@ class DysonianLineTrainer:
         print(f"   Learning rate: {learning_rate}")
         print(f"   Weight decay: {weight_decay}")
     
-    def create_data_loaders(self, X_train, X_val, X_test, y_train, y_val, y_test, batch_size=32):
+    def create_data_loaders(self, X_train, X_val, X_test, y_train, y_val, y_test, batch_size=16):
         """
         Створює DataLoader для тренування, валідації та тестування
         
         Args:
             X_train, X_val, X_test: вхідні дані
             y_train, y_val, y_test: вихідні дані
-            batch_size: розмір батчу
+            batch_size: розмір батчу (зменшено до 16 для економії пам'яті)
         
         Returns:
             tuple: (train_loader, val_loader, test_loader)
         """
         print("📦 Створення DataLoader...")
         
-        # Конвертуємо в PyTorch тензори
-        X_train_tensor = torch.FloatTensor(X_train).to(self.device)
-        X_val_tensor = torch.FloatTensor(X_val).to(self.device)
-        X_test_tensor = torch.FloatTensor(X_test).to(self.device)
+        # Конвертуємо в PyTorch тензори (на CPU для економії пам'яті)
+        X_train_tensor = torch.FloatTensor(X_train)
+        X_val_tensor = torch.FloatTensor(X_val)
+        X_test_tensor = torch.FloatTensor(X_test)
         
-        y_train_tensor = torch.FloatTensor(y_train).to(self.device)
-        y_val_tensor = torch.FloatTensor(y_val).to(self.device)
-        y_test_tensor = torch.FloatTensor(y_test).to(self.device)
+        y_train_tensor = torch.FloatTensor(y_train)
+        y_val_tensor = torch.FloatTensor(y_val)
+        y_test_tensor = torch.FloatTensor(y_test)
         
         # Створюємо датасети
         train_dataset = TensorDataset(X_train_tensor, y_train_tensor)
         val_dataset = TensorDataset(X_val_tensor, y_val_tensor)
         test_dataset = TensorDataset(X_test_tensor, y_test_tensor)
         
-        # Створюємо DataLoader
-        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+        # Створюємо DataLoader з меншим batch_size
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
+        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, pin_memory=True)
         
         print(f"✅ DataLoader створено:")
         print(f"   Train batches: {len(train_loader)}")
         print(f"   Val batches: {len(val_loader)}")
         print(f"   Test batches: {len(test_loader)}")
-        print(f"   Batch size: {batch_size}")
+        print(f"   Batch size: {batch_size} (оптимізовано для пам'яті)")
         
         return train_loader, val_loader, test_loader
     
@@ -119,6 +119,10 @@ class DysonianLineTrainer:
         all_targets = []
         
         for batch_idx, (data, target) in enumerate(train_loader):
+            # Переносимо дані на GPU
+            data = data.to(self.device)
+            target = target.to(self.device)
+            
             self.optimizer.zero_grad()
             
             # Прямий прохід
@@ -131,9 +135,13 @@ class DysonianLineTrainer:
             
             total_loss += loss.item()
             
-            # Зберігаємо для метрик
+            # Зберігаємо для метрик (на CPU для економії пам'яті)
             all_predictions.append(output.detach().cpu().numpy())
             all_targets.append(target.detach().cpu().numpy())
+            
+            # Очищаємо кеш GPU
+            if batch_idx % 10 == 0:
+                torch.cuda.empty_cache()
         
         # Обчислюємо метрики
         avg_loss = total_loss / len(train_loader)
@@ -161,6 +169,10 @@ class DysonianLineTrainer:
         
         with torch.no_grad():
             for data, target in val_loader:
+                # Переносимо дані на GPU
+                data = data.to(self.device)
+                target = target.to(self.device)
+                
                 output = self.model(data)
                 loss = self.criterion(output, target)
                 
