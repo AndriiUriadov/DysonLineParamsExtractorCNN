@@ -2,15 +2,19 @@
 # КОД ДЛЯ ЗАПУСКУ В GOOGLE COLAB
 # =============================================================================
 
-# Встановлюємо необхідні бібліотеки
-!pip install psutil
-
 # Імпортуємо модулі
 import subprocess
 import sys
 import platform
-from psutil import virtual_memory
 import warnings
+
+# Спробуємо імпортувати psutil, якщо не встановлено - встановимо
+try:
+    from psutil import virtual_memory
+except ImportError:
+    print("📦 Встановлюємо psutil...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "psutil"])
+    from psutil import virtual_memory
 
 def check_gpu_availability():
     """
