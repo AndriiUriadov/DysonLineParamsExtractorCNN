@@ -12,12 +12,13 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 
-def visualize_model_architecture(model, save_path='model_architecture.png'):
+def visualize_model_architecture(model, device=None, save_path='model_architecture.png'):
     """
     Візуалізує архітектуру моделі
     
     Args:
         model: DysonianLineCNN модель
+        device: пристрій (GPU/CPU) - опціонально
         save_path: шлях для збереження зображення
     """
     fig, ax = plt.subplots(figsize=(15, 10))

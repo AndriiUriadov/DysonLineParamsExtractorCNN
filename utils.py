@@ -276,6 +276,57 @@ def create_prediction_report(predictions, targets, param_names=['B0', 'dB', 'p',
     
     return metrics
 
+def plot_training_results(history):
+    """
+    Візуалізує результати навчання (обгортка для plot_training_curves)
+    
+    Args:
+        history: історія навчання з тренера
+    """
+    if 'train_losses' in history and 'val_losses' in history:
+        plot_training_curves(
+            history['train_losses'], 
+            history['val_losses'], 
+            history.get('train_metrics', []), 
+            history.get('val_metrics', [])
+        )
+    else:
+        print("⚠️  Історія навчання не містить необхідних даних для візуалізації")
+
+def plot_predictions_vs_actual(model, test_loader, device, scaler_y):
+    """
+    Візуалізує передбачення проти справжніх значень (обгортка)
+    
+    Args:
+        model: навчена модель
+        test_loader: DataLoader для тестових даних
+        device: пристрій (GPU/CPU)
+        scaler_y: scaler для денормалізації
+    """
+    model.eval()
+    all_predictions = []
+    all_targets = []
+    
+    with torch.no_grad():
+        for data, target in test_loader:
+            data = data.to(device)
+            target = target.to(device)
+            
+            output = model(data)
+            
+            all_predictions.append(output.cpu().numpy())
+            all_targets.append(target.cpu().numpy())
+    
+    predictions = np.vstack(all_predictions)
+    targets = np.vstack(all_targets)
+    
+    # Денормалізуємо дані
+    predictions_denorm = denormalize_predictions(predictions, scaler_y)
+    targets_denorm = denormalize_predictions(targets, scaler_y)
+    
+    # Візуалізуємо
+    plot_predictions_vs_targets(predictions_denorm, targets_denorm)
+
 def plot_correlation_matrix(predictions, targets, param_names=['B0', 'dB', 'p', 'I']):
     """
     Візуалізує матрицю кореляції між передбаченнями та справжніми значеннями
