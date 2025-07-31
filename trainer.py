@@ -320,6 +320,10 @@ class DysonianLineTrainer:
         
         with torch.no_grad():
             for data, target in test_loader:
+                # Переносимо дані на GPU
+                data = data.to(self.device)
+                target = target.to(self.device)
+                
                 output = self.model(data)
                 all_predictions.append(output.cpu().numpy())
                 all_targets.append(target.cpu().numpy())
