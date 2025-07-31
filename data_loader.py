@@ -77,6 +77,107 @@ def preprocess_data(X, y):
 
     return X_train, X_val, X_test, y_train, y_val, y_test, scaler_y, y_min, y_max
 
+def visualize_random_spectra(X_train, X_val, X_test, y_train, y_val, y_test, X_original=None):
+    """
+    Візуалізує 2 випадкових спектри для контролю процесів завантаження та нормалізації
+    
+    Args:
+        X_train, X_val, X_test: нормалізовані вхідні дані
+        y_train, y_val, y_test: нормалізовані вихідні дані
+        X_original: оригінальні дані (опціонально)
+    """
+    import matplotlib.pyplot as plt
+    import random
+    
+    print("📊 Візуалізація випадкових спектрів для контролю...")
+    
+    # Вибір випадкових індексів
+    train_idx = random.randint(0, len(X_train) - 1)
+    val_idx = random.randint(0, len(X_val) - 1)
+    
+    # Створюємо графік
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+    
+    # Спектр 1: Train set
+    axes[0, 0].plot(X_train[train_idx], 'b-', linewidth=1, alpha=0.8)
+    axes[0, 0].set_title(f'Train Spectrum #{train_idx}', fontsize=12, fontweight='bold')
+    axes[0, 0].set_xlabel('Frequency Channel')
+    axes[0, 0].set_ylabel('Normalized Intensity')
+    axes[0, 0].grid(True, alpha=0.3)
+    axes[0, 0].text(0.02, 0.98, f'Parameters: B0={y_train[train_idx, 0]:.3f}, dB={y_train[train_idx, 1]:.3f}\np={y_train[train_idx, 2]:.3f}, I={y_train[train_idx, 3]:.3f}', 
+                     transform=axes[0, 0].transAxes, verticalalignment='top', 
+                     bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+    
+    # Спектр 2: Validation set
+    axes[0, 1].plot(X_val[val_idx], 'r-', linewidth=1, alpha=0.8)
+    axes[0, 1].set_title(f'Validation Spectrum #{val_idx}', fontsize=12, fontweight='bold')
+    axes[0, 1].set_xlabel('Frequency Channel')
+    axes[0, 1].set_ylabel('Normalized Intensity')
+    axes[0, 1].grid(True, alpha=0.3)
+    axes[0, 1].text(0.02, 0.98, f'Parameters: B0={y_val[val_idx, 0]:.3f}, dB={y_val[val_idx, 1]:.3f}\np={y_val[val_idx, 2]:.3f}, I={y_val[val_idx, 3]:.3f}', 
+                     transform=axes[0, 1].transAxes, verticalalignment='top', 
+                     bbox=dict(boxstyle='round', facecolor='lightcoral', alpha=0.8))
+    
+    # Порівняння оригінального та нормалізованого (якщо є оригінальні дані)
+    if X_original is not None:
+        # Знаходимо відповідні індекси в оригінальних даних
+        original_train_idx = train_idx  # Приблизно
+        original_val_idx = len(X_original) - len(X_test) - len(X_val) + val_idx
+        
+        axes[1, 0].plot(X_original[original_train_idx], 'g-', linewidth=1, alpha=0.6, label='Original')
+        axes[1, 0].plot(X_train[train_idx], 'b-', linewidth=1, alpha=0.8, label='Normalized')
+        axes[1, 0].set_title('Train: Original vs Normalized', fontsize=12, fontweight='bold')
+        axes[1, 0].set_xlabel('Frequency Channel')
+        axes[1, 0].set_ylabel('Intensity')
+        axes[1, 0].legend()
+        axes[1, 0].grid(True, alpha=0.3)
+        
+        axes[1, 1].plot(X_original[original_val_idx], 'g-', linewidth=1, alpha=0.6, label='Original')
+        axes[1, 1].plot(X_val[val_idx], 'r-', linewidth=1, alpha=0.8, label='Normalized')
+        axes[1, 1].set_title('Validation: Original vs Normalized', fontsize=12, fontweight='bold')
+        axes[1, 1].set_xlabel('Frequency Channel')
+        axes[1, 1].set_ylabel('Intensity')
+        axes[1, 1].legend()
+        axes[1, 1].grid(True, alpha=0.3)
+    else:
+        # Статистика нормалізації
+        axes[1, 0].hist(X_train.flatten(), bins=50, alpha=0.7, color='blue', label='Train')
+        axes[1, 0].hist(X_val.flatten(), bins=50, alpha=0.7, color='red', label='Validation')
+        axes[1, 0].set_title('Distribution of Normalized Values', fontsize=12, fontweight='bold')
+        axes[1, 0].set_xlabel('Normalized Intensity')
+        axes[1, 0].set_ylabel('Frequency')
+        axes[1, 0].legend()
+        axes[1, 0].grid(True, alpha=0.3)
+        
+        # Статистика параметрів
+        param_names = ['B0', 'dB', 'p', 'I']
+        train_means = [np.mean(y_train[:, i]) for i in range(4)]
+        val_means = [np.mean(y_val[:, i]) for i in range(4)]
+        
+        x_pos = np.arange(len(param_names))
+        width = 0.35
+        
+        axes[1, 1].bar(x_pos - width/2, train_means, width, label='Train', alpha=0.7, color='blue')
+        axes[1, 1].bar(x_pos + width/2, val_means, width, label='Validation', alpha=0.7, color='red')
+        axes[1, 1].set_title('Mean Parameter Values', fontsize=12, fontweight='bold')
+        axes[1, 1].set_xlabel('Parameters')
+        axes[1, 1].set_ylabel('Normalized Value')
+        axes[1, 1].set_xticks(x_pos)
+        axes[1, 1].set_xticklabels(param_names)
+        axes[1, 1].legend()
+        axes[1, 1].grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.show()
+    
+    # Виводимо статистику
+    print(f"📈 Статистика нормалізації:")
+    print(f"   Train X - Mean: {np.mean(X_train):.6f}, Std: {np.std(X_train):.6f}")
+    print(f"   Val X - Mean: {np.mean(X_val):.6f}, Std: {np.std(X_val):.6f}")
+    print(f"   Train y - Min: {np.min(y_train, axis=0)}, Max: {np.max(y_train, axis=0)}")
+    print(f"   Val y - Min: {np.min(y_val, axis=0)}, Max: {np.max(y_val, axis=0)}")
+    print(f"✅ Візуалізація завершена!")
+
 def create_data_dict(y_train, y_val, y_test):
     """
     Створює словники з даними для зручності
@@ -122,6 +223,9 @@ def load_and_preprocess():
     
     # Створюємо словники
     y_train_dict, y_val_dict, y_test_dict = create_data_dict(y_train, y_val, y_test)
+    
+    # Візуалізуємо випадкові спектри для контролю
+    visualize_random_spectra(X_train, X_val, X_test, y_train, y_val, y_test, X_original=X)
     
     return (X_train, X_val, X_test, y_train, y_val, y_test, 
             y_train_dict, y_val_dict, y_test_dict, scaler_y, y_min, y_max) 
