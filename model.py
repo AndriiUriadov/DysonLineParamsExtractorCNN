@@ -148,7 +148,7 @@ class DysonianLineCNN(nn.Module):
         
         return summary
 
-def create_model(input_size=4096, hidden_sizes=[512, 256, 128], num_heads=8, dropout=0.2, device='cuda'):
+def create_model(input_size=4096, hidden_sizes=[512, 256, 128], num_heads=8, dropout=0.2, device=None):
     """
     Створює та ініціалізує модель
     
@@ -157,12 +157,17 @@ def create_model(input_size=4096, hidden_sizes=[512, 256, 128], num_heads=8, dro
         hidden_sizes: список розмірів прихованих шарів
         num_heads: кількість голів у multi-head attention
         dropout: коефіцієнт dropout
-        device: пристрій для обчислень ('cuda' або 'cpu')
+        device: пристрій для обчислень ('cuda' або 'cpu'), якщо None - автоматично визначається
     
     Returns:
         model: ініціалізована модель
     """
     print("🏗️ Створення моделі...")
+    
+    # Автоматично визначаємо пристрій, якщо не вказано
+    if device is None:
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print(f"🎯 Автоматично визначено пристрій: {device}")
     
     # Створюємо модель
     model = DysonianLineCNN(
