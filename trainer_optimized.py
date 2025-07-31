@@ -71,7 +71,7 @@ class OptimizedDysonianLineTrainer:
         print(f"   Оптимізатор: AdamW")
         print(f"   CUDNN benchmark: увімкнено")
     
-    def create_data_loaders(self, X_train, X_val, X_test, y_train, y_val, y_test, batch_size=32):
+    def create_data_loaders(self, X_train, X_val, X_test, y_train, y_val, y_test, batch_size=8):
         """
         Створює оптимізовані DataLoader для швидшого навчання
         
@@ -149,8 +149,13 @@ class OptimizedDysonianLineTrainer:
         all_predictions = []
         all_targets = []
         
-        # Використовуємо torch.cuda.amp для mixed precision
-        scaler = torch.cuda.amp.GradScaler()
+        # Використовуємо torch.amp для mixed precision (виправлено deprecated warning)
+        scaler = torch.amp.GradScaler('cuda')
+        
+        # Додаткові оптимізації пам'яті
+        torch.cuda.empty_cache()
+        if hasattr(torch.backends, 'cudnn'):
+            torch.backends.cudnn.benchmark = True
         
         for batch_idx, (data, target) in enumerate(train_loader):
             # Переносимо дані на GPU
@@ -159,8 +164,8 @@ class OptimizedDysonianLineTrainer:
             
             self.optimizer.zero_grad(set_to_none=True)  # Швидше очищення
             
-            # Mixed precision training
-            with torch.cuda.amp.autocast():
+            # Mixed precision training (виправлено deprecated warning)
+            with torch.amp.autocast('cuda'):
                 output = self.model(data)
                 loss = self.criterion(output, target)
             
@@ -213,8 +218,8 @@ class OptimizedDysonianLineTrainer:
                 data = data.to(self.device, non_blocking=True)
                 target = target.to(self.device, non_blocking=True)
                 
-                # Mixed precision inference
-                with torch.cuda.amp.autocast():
+                # Mixed precision inference (виправлено deprecated warning)
+                with torch.amp.autocast('cuda'):
                     output = self.model(data)
                     loss = self.criterion(output, target)
                 
