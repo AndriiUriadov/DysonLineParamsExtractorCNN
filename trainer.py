@@ -139,9 +139,7 @@ class DysonianLineTrainer:
             all_predictions.append(output.detach().cpu().numpy())
             all_targets.append(target.detach().cpu().numpy())
             
-            # Показуємо прогрес кожні 100 batch'ів
-            if batch_idx % 100 == 0 and batch_idx > 0:
-                print(f"     [BATCH] Batch {batch_idx}/{len(train_loader)} - Loss: {loss.item():.6f}")
+            # Прогрес batch'ів не виводимо для чистоти виводу
             
             # Очищаємо кеш GPU
             if batch_idx % 10 == 0:
