@@ -426,6 +426,80 @@ class DysonianLineTrainer:
         
         plt.tight_layout()
         plt.show()
+    
+    def plot_loss_history(self, figsize=(12, 8)):
+        """
+        Побудова графіка втрат, аналогічний до Keras
+        
+        Args:
+            figsize: розмір графіка
+        """
+        plt.figure(figsize=figsize)
+        
+        # Побудова ліній втрат
+        epochs = range(1, len(self.train_losses) + 1)
+        plt.plot(epochs, self.train_losses, 'b-', linewidth=2, label='Train Loss', alpha=0.8)
+        plt.plot(epochs, self.val_losses, 'r-', linewidth=2, label='Validation Loss', alpha=0.8)
+        
+        # Налаштування графіка
+        plt.xlabel('Epoch', fontsize=12)
+        plt.ylabel('Loss (MSE)', fontsize=12)
+        plt.title('Зміна Loss під час навчання', fontsize=14, fontweight='bold')
+        plt.legend(fontsize=11)
+        plt.grid(True, alpha=0.3)
+        
+        # Покращення візуалізації
+        plt.tight_layout()
+        plt.show()
+        
+        # Виводимо статистику
+        print(f"📊 Статистика втрат:")
+        print(f"   Початковий Train Loss: {self.train_losses[0]:.6f}")
+        print(f"   Фінальний Train Loss: {self.train_losses[-1]:.6f}")
+        print(f"   Покращення Train Loss: {((self.train_losses[0] - self.train_losses[-1]) / self.train_losses[0] * 100):.1f}%")
+        print(f"   Початковий Val Loss: {self.val_losses[0]:.6f}")
+        print(f"   Фінальний Val Loss: {self.val_losses[-1]:.6f}")
+        print(f"   Покращення Val Loss: {((self.val_losses[0] - self.val_losses[-1]) / self.val_losses[0] * 100):.1f}%")
+        print(f"   Найкращий Val Loss: {min(self.val_losses):.6f} (епока {self.val_losses.index(min(self.val_losses)) + 1})")
+    
+    def plot_r2_history(self, figsize=(12, 8)):
+        """
+        Побудова графіка R², аналогічний до Keras
+        
+        Args:
+            figsize: розмір графіка
+        """
+        plt.figure(figsize=figsize)
+        
+        # Отримуємо R² значення
+        train_r2 = [m['R2'] for m in self.train_metrics]
+        val_r2 = [m['R2'] for m in self.val_metrics]
+        
+        # Побудова ліній R²
+        epochs = range(1, len(train_r2) + 1)
+        plt.plot(epochs, train_r2, 'g-', linewidth=2, label='Train R²', alpha=0.8)
+        plt.plot(epochs, val_r2, 'm-', linewidth=2, label='Validation R²', alpha=0.8)
+        
+        # Налаштування графіка
+        plt.xlabel('Epoch', fontsize=12)
+        plt.ylabel('R² Score', fontsize=12)
+        plt.title('Зміна R² під час навчання', fontsize=14, fontweight='bold')
+        plt.legend(fontsize=11)
+        plt.grid(True, alpha=0.3)
+        
+        # Покращення візуалізації
+        plt.tight_layout()
+        plt.show()
+        
+        # Виводимо статистику
+        print(f"📊 Статистика R²:")
+        print(f"   Початковий Train R²: {train_r2[0]:.4f}")
+        print(f"   Фінальний Train R²: {train_r2[-1]:.4f}")
+        print(f"   Покращення Train R²: {((train_r2[-1] - train_r2[0]) / abs(train_r2[0]) * 100):.1f}%")
+        print(f"   Початковий Val R²: {val_r2[0]:.4f}")
+        print(f"   Фінальний Val R²: {val_r2[-1]:.4f}")
+        print(f"   Покращення Val R²: {((val_r2[-1] - val_r2[0]) / abs(val_r2[0]) * 100):.1f}%")
+        print(f"   Найкращий Val R²: {max(val_r2):.4f} (епока {val_r2.index(max(val_r2)) + 1})")
 
 def create_trainer(model, learning_rate=0.001, weight_decay=1e-5, device='cuda'):
     """
